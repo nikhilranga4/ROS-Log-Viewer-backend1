@@ -10,7 +10,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://roslogviewer.netlify.app"],  # Use your Netlify frontend URL
+    allow_origins=["https://roslogviewer.netlify.app","http://localhost:3000"],  # Use your Netlify frontend URL
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
