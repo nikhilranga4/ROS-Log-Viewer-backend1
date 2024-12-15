@@ -28,7 +28,7 @@ class LogEntry:
 def parse_log_file(file_content: str):
     logs = []
     # Regex to match the log format [timestamp] [severity] [node_name] message
-    log_pattern = r"\\[(?P<timestamp>[^\\]]+)\\] \\\[(?P<severity>[^\\]]+)\\\] \\\[(?P<node>[^\\]]+)\\\] (?P<message>.*)"
+    log_pattern = r"\[(?P<timestamp>[^\]]+)\] \[(?P<severity>[^\]]+)\] \[(?P<node>[^\]]+)\] (?P<message>.*)"
     
     for line in file_content.splitlines():
         if not line.strip():
