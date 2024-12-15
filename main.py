@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import re
@@ -10,7 +10,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://roslogviewer.netlify.app","http://localhost:3000"],  # Use your Netlify frontend URL
+    allow_origins=["https://roslogviewer.netlify.app"],  # Use your Netlify frontend URL
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -28,7 +28,7 @@ class LogEntry:
 def parse_log_file(file_content: str):
     logs = []
     # Regex to match the log format [timestamp] [severity] [node_name] message
-    log_pattern = r"\[(?P<timestamp>[^\]]+)\] \[(?P<severity>[^\]]+)\] \[(?P<node>[^\]]+)\] (?P<message>.*)"
+    log_pattern = r"\\[(?P<timestamp>[^\\]]+)\\] \\\[(?P<severity>[^\\]]+)\\\] \\\[(?P<node>[^\\]]+)\\\] (?P<message>.*)"
     
     for line in file_content.splitlines():
         if not line.strip():
@@ -69,6 +69,28 @@ async def get_logs():
     except Exception as e:
         # Handle any exceptions and return an error response
         return JSONResponse(status_code=500, content={"message": f"Error reading the log file: {str(e)}"})
+
+@app.post("/api/upload")
+async def upload_log_file(file: UploadFile = File(...)):
+    try:
+        # Check if the uploaded file is .log or .txt
+        if not (file.filename.endswith(".log") or file.filename.endswith(".txt")):
+            raise HTTPException(status_code=400, detail="Only .log or .txt files are allowed")
+
+        # Read the file content
+        file_content = await file.read()
+
+        # Decode the file content to string
+        file_content_str = file_content.decode("utf-8")
+
+        # Parse the log file content
+        logs = parse_log_file(file_content_str)
+
+        # Return the parsed logs as a JSON response
+        return JSONResponse(content={"logs": logs})
+    except Exception as e:
+        # Handle exceptions and return an error response
+        return JSONResponse(status_code=500, content={"message": f"Error processing the file: {str(e)}"})
 
 # For running locally, not needed for Render deployment
 if __name__ == "__main__":
